@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="30">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xapien Risk Inconsistency Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 28px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            opacity: 0.8;
+            flex-wrap: wrap;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 160px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-card.alert {
+            background: #fff5f5;
+            border-color: #fed7d7;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .stat-card.alert .stat-value {
+            color: #c53030;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 40px 60px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 28px 0 16px;
+            color: #2d3748;
+        }
+
+        /* Summary Table */
+        .summary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            margin-bottom: 32px;
+        }
+
+        .summary-table th {
+            background: #2d3748;
+            color: white;
+            padding: 12px 14px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .summary-table th:first-child {
+            text-align: left;
+        }
+
+        .summary-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .subject-name-cell {
+            text-align: left !important;
+            font-weight: 600;
+        }
+
+        .incon-yes {
+            background: #c53030 !important;
+            color: white !important;
+            font-weight: 700;
+            border-radius: 4px;
+        }
+
+        .incon-no {
+            color: #38a169;
+            font-weight: 600;
+        }
+
+        /* Subject Cards */
+        .subject-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border-left: 5px solid #38a169;
+        }
+
+        .subject-card.subject-inconsistent {
+            border-left-color: #c53030;
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #edf2f7;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .subject-title {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .subject-title h2 {
+            font-size: 17px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .report-count {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .badge-danger {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        .badge-success {
+            background: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+        }
+
+        .incon-detail {
+            padding: 12px 24px;
+            background: #fff5f5;
+            border-bottom: 1px solid #fed7d7;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .incon-item {
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .risk-badge.risk-high { background: #fc8181; color: #fff; }
+        .risk-badge.risk-medium { background: #f6ad55; color: #fff; }
+        .risk-badge.risk-low { background: #faf089; color: #744210; }
+        .risk-badge.risk-none { background: #9ae6b4; color: #22543d; }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .subject-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .subject-card th {
+            background: #edf2f7;
+            padding: 10px 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #4a5568;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .subject-card th:first-child,
+        .subject-card th:nth-child(2) {
+            text-align: left;
+        }
+
+        .subject-card td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+
+        .subject-card tr:last-child td {
+            border-bottom: none;
+        }
+
+        .subject-card tr:hover {
+            background: #fafafa;
+        }
+
+        .date-cell {
+            white-space: nowrap;
+            color: #4a5568;
+            font-size: 12px;
+        }
+
+        .report-link {
+            color: #3182ce;
+            text-decoration: none;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .report-link:hover {
+            text-decoration: underline;
+            color: #2b6cb0;
+        }
+
+        /* Risk cell colors */
+        .risk-high {
+            background: #fc8181;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .risk-medium {
+            background: #f6ad55;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .risk-low {
+            background: #faf089;
+            color: #744210;
+            font-weight: 500;
+        }
+
+        .risk-none {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .inconsistent {
+            background: #d53f8c !important;
+            color: white !important;
+            font-weight: 700 !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #4a5568;
+        }
+
+        .legend-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .refresh-note {
+            text-align: center;
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 20px;
+        }
+
+        .center { text-align: center; }
+
+        @media (max-width: 768px) {
+            .header, .stats-bar, .container {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            .stat-card { min-width: 120px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Xapien Risk Score Inconsistency Dashboard</h1>
+        <div class="header-meta">
+            <span>User: 14c6b325-2c62-41a5-9c7b-95b8e48548cc</span>
+            <span>Reports from: 17 March 2026</span>
+            <span>Last updated: 2026-03-17 14:19:34 UTC</span>
+            <span>Auto-refreshes every 30s</span>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-value">28</div>
+            <div class="stat-label">Total Reports</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Unique Subjects</div>
+        </div>
+        <div class="stat-card alert">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Subjects with Inconsistencies</div>
+        </div>
+        <div class="stat-card alert">
+            <div class="stat-value">14</div>
+            <div class="stat-label">Inconsistent Risk Categories</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3 class="section-title">Summary by Subject</h3>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th># Reports</th>
+                    <th>Inconsistent?</th>
+                    <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+            <td class="subject-name-cell">Caleg Schrank und Gehäusebau GmbH</td>
+            <td class="center">2</td>
+            <td class="incon-yes">YES</td>
+            <td class="risk-high inconsistent">High *</td><td class="risk-high">High</td><td class="risk-high inconsistent">High *</td><td class="risk-medium inconsistent">Medium *</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-medium inconsistent">Medium *</td>
+        </tr><tr>
+            <td class="subject-name-cell">Certa</td>
+            <td class="center">7</td>
+            <td class="incon-yes">YES</td>
+            <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-high inconsistent">High *</td><td class="risk-low inconsistent">Low *</td><td class="risk-high inconsistent">High *</td><td class="risk-none">None</td><td class="risk-none">None</td>
+        </tr><tr>
+            <td class="subject-name-cell">KB Components Finland Oy</td>
+            <td class="center">1</td>
+            <td class="incon-no">No</td>
+            <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low">Low</td><td class="risk-low">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+        </tr><tr>
+            <td class="subject-name-cell">MWW Metallwerk Wedel GmbH</td>
+            <td class="center">12</td>
+            <td class="incon-no">No</td>
+            <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+        </tr><tr>
+            <td class="subject-name-cell">Morganite Brasil Ltda.</td>
+            <td class="center">3</td>
+            <td class="incon-yes">YES</td>
+            <td class="risk-none">None</td><td class="risk-high inconsistent">High *</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-low inconsistent">Low *</td><td class="risk-medium inconsistent">Medium *</td>
+        </tr><tr>
+            <td class="subject-name-cell">Opinr, Inc.</td>
+            <td class="center">3</td>
+            <td class="incon-yes">YES</td>
+            <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-medium inconsistent">Medium *</td><td class="risk-low inconsistent">Low *</td><td class="risk-high inconsistent">High *</td><td class="risk-none">None</td><td class="risk-medium inconsistent">Medium *</td>
+        </tr>
+            </tbody>
+        </table>
+
+        <h3 class="section-title">Detailed Report Breakdown</h3>
+        
+        <div class="subject-card subject-inconsistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>Caleg Schrank und Gehäusebau GmbH</h2>
+                    <span class="report-count">2 reports</span>
+                </div>
+                <span class="badge badge-danger">INCONSISTENCIES DETECTED</span>
+            </div>
+            <div class="incon-detail"><div class="incon-item"><strong>Integrity:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Cyber Security / Data Privacy:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-medium">Medium</span></div><div class="incon-item"><strong>Financial risk:</strong> <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Business Continuity:</strong> <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-none">None</span></div></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 11:55:21</td>
+                <td><a href="https://platform.xapien.com/reports/a739d972-ec36-4340-a168-acfa69af8d0a" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-high">High</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:55:14</td>
+                <td><a href="https://platform.xapien.com/reports/8b18f4a4-e45b-4bff-bd2e-229f0f3907de" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-high inconsistent">High</td><td class="risk-high">High</td><td class="risk-medium inconsistent">Medium</td><td class="risk-medium inconsistent">Medium</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-medium inconsistent">Medium</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subject-card subject-inconsistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>Certa</h2>
+                    <span class="report-count">7 reports</span>
+                </div>
+                <span class="badge badge-danger">INCONSISTENCIES DETECTED</span>
+            </div>
+            <div class="incon-detail"><div class="incon-item"><strong>Cyber Security / Data Privacy:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-low">Low</span></div><div class="incon-item"><strong>Financial risk:</strong> <span class="risk-badge risk-low">Low</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Geopolitical risk:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-none">None</span></div></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 12:25:21</td>
+                <td><a href="https://platform.xapien.com/reports/cc16eb9c-304b-40a1-b894-ff525ca116e9" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 12:15:29</td>
+                <td><a href="https://platform.xapien.com/reports/7b32f04f-6993-4083-8dd0-acbae3d93e51" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:45:27</td>
+                <td><a href="https://platform.xapien.com/reports/34dc439c-57e5-4c6f-ad69-fc611e20dad1" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:45:27</td>
+                <td><a href="https://platform.xapien.com/reports/dcf258be-cd2f-48e4-895d-eeacce0419a9" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:25:34</td>
+                <td><a href="https://platform.xapien.com/reports/6a8dc6f9-3631-4e51-ae50-8d82735615cf" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:25:42</td>
+                <td><a href="https://platform.xapien.com/reports/433a3b2f-7a39-447d-8460-a979fdfdd667" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 08:05:50</td>
+                <td><a href="https://platform.xapien.com/reports/36621940-bfcd-4c30-b504-1c8887eff590" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subject-card subject-consistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>KB Components Finland Oy</h2>
+                    <span class="report-count">1 report</span>
+                </div>
+                <span class="badge badge-success">Consistent</span>
+            </div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 12:45:15</td>
+                <td><a href="https://platform.xapien.com/reports/ef90fbe2-517b-4bf0-9979-77d5f6198898" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low">Low</td><td class="risk-low">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subject-card subject-consistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>MWW Metallwerk Wedel GmbH</h2>
+                    <span class="report-count">12 reports</span>
+                </div>
+                <span class="badge badge-success">Consistent</span>
+            </div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 13:14:59</td>
+                <td><a href="https://platform.xapien.com/reports/1f3e8a7b-8967-47db-a65d-76ebd97598c5" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 13:14:55</td>
+                <td><a href="https://platform.xapien.com/reports/7030c242-bbad-4321-8bd4-e4a89e4afd67" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 13:14:51</td>
+                <td><a href="https://platform.xapien.com/reports/20a06bc2-2e44-42e5-99a1-d68cad2621e2" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:55:18</td>
+                <td><a href="https://platform.xapien.com/reports/0828f418-bb61-4653-89a2-7453cff695f1" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:45:58</td>
+                <td><a href="https://platform.xapien.com/reports/5f7dba07-e01d-42f3-a1c5-0753c7c5b41e" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:45:15</td>
+                <td><a href="https://platform.xapien.com/reports/3ad2b531-471c-44e1-93c0-abef46482f87" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:01:10</td>
+                <td><a href="https://platform.xapien.com/reports/85842572-bb52-4896-a225-4fc5cdef5131" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:01:07</td>
+                <td><a href="https://platform.xapien.com/reports/67e13615-c728-477c-b5ce-bc3f51bdb186" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:35:31</td>
+                <td><a href="https://platform.xapien.com/reports/38f3f636-3cad-48f2-85bd-379c9582dcf8" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:35:29</td>
+                <td><a href="https://platform.xapien.com/reports/b2eacaf3-b6f6-47b9-82b4-05f106a417cd" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:35:28</td>
+                <td><a href="https://platform.xapien.com/reports/4fd742ae-1063-472a-999a-b1082c30b9e1" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:05:43</td>
+                <td><a href="https://platform.xapien.com/reports/14878ef3-7483-4686-99c5-af8d8f124bd4" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subject-card subject-inconsistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>Morganite Brasil Ltda.</h2>
+                    <span class="report-count">3 reports</span>
+                </div>
+                <span class="badge badge-danger">INCONSISTENCIES DETECTED</span>
+            </div>
+            <div class="incon-detail"><div class="incon-item"><strong>Sustainability:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Basic Quality Management:</strong> <span class="risk-badge risk-low">Low</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Business Continuity:</strong> <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-none">None</span></div></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 10:26:53</td>
+                <td><a href="https://platform.xapien.com/reports/fa4a3f5e-c7f5-4323-b512-bde72a306280" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-medium inconsistent">Medium</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-low inconsistent">Low</td><td class="risk-medium inconsistent">Medium</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 10:26:03</td>
+                <td><a href="https://platform.xapien.com/reports/300f00e1-8b2d-4630-a339-a5f7edc74d3c" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-medium inconsistent">Medium</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 04:35:18</td>
+                <td><a href="https://platform.xapien.com/reports/52c9310f-89dc-4c1e-8e45-26539844964e" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subject-card subject-inconsistent">
+            <div class="subject-header">
+                <div class="subject-title">
+                    <h2>Opinr, Inc.</h2>
+                    <span class="report-count">3 reports</span>
+                </div>
+                <span class="badge badge-danger">INCONSISTENCIES DETECTED</span>
+            </div>
+            <div class="incon-detail"><div class="incon-item"><strong>Cyber Security / Data Privacy:</strong> <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-low">Low</span></div><div class="incon-item"><strong>Financial risk:</strong> <span class="risk-badge risk-low">Low</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Geopolitical risk:</strong> <span class="risk-badge risk-high">High</span> → <span class="risk-badge risk-none">None</span></div><div class="incon-item"><strong>Business Continuity:</strong> <span class="risk-badge risk-medium">Medium</span> → <span class="risk-badge risk-none">None</span></div></div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report Created (UTC)</th>
+                            <th>Link</th>
+                            <th>Integrity</th><th>Sustainability</th><th>Cyber Security / Data Privacy</th><th>Financial risk</th><th>Geopolitical risk</th><th>Basic Quality Management</th><th>Business Continuity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                <td class="date-cell">2026-03-17 11:45:28</td>
+                <td><a href="https://platform.xapien.com/reports/8781709c-da51-433e-b7d7-ae5fb23347d1" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-high inconsistent">High</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 11:45:23</td>
+                <td><a href="https://platform.xapien.com/reports/834b3b27-9d74-45b4-a3d2-13886ad663c1" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-medium inconsistent">Medium</td>
+            </tr><tr>
+                <td class="date-cell">2026-03-17 04:55:16</td>
+                <td><a href="https://platform.xapien.com/reports/4d410756-086f-409c-b668-bf59804f6121" target="_blank" class="report-link">Open Report ↗</a></td>
+                <td class="risk-none">None</td><td class="risk-low">Low</td><td class="risk-medium inconsistent">Medium</td><td class="risk-low inconsistent">Low</td><td class="risk-none">None</td><td class="risk-none">None</td><td class="risk-none">None</td>
+            </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-swatch" style="background:#fc8181"></div> High Risk</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#f6ad55"></div> Medium Risk</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#faf089"></div> Low Risk</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#c6f6d5"></div> No Risk</div>
+            <div class="legend-item"><div class="legend-swatch" style="background:#d53f8c"></div> Inconsistency (pulsing)</div>
+        </div>
+
+        <p class="refresh-note">This page auto-refreshes every 30 seconds. Last data check: 2026-03-17 14:19:34 UTC</p>
+    </div>
+</body>
+</html>
