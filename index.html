@@ -362,6 +362,30 @@
             border-radius: 3px;
         }
 
+        .summary-legend {
+            background: white;
+            border-radius: 10px;
+            padding: 18px 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .summary-legend-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 28px;
+        }
+
         .refresh-note {
             text-align: center;
             font-size: 12px;
@@ -386,7 +410,7 @@
         <div class="header-meta">
             <span>User: 14c6b325-2c62-41a5-9c7b-95b8e48548cc</span>
             <span>Reports from: 17 March 2026</span>
-            <span>Last updated: 2026-03-17 14:19:34 UTC</span>
+            <span>Last updated: 2026-03-17 14:53:35 UTC</span>
             <span>Auto-refreshes every 30s</span>
         </div>
     </div>
@@ -455,6 +479,19 @@
         </tr>
             </tbody>
         </table>
+
+        <div class="summary-legend">
+            <div class="summary-legend-title">Key</div>
+            <div class="summary-legend-items">
+                <div class="legend-item"><div class="legend-swatch" style="background:#fc8181"></div> High — Significant risk identified</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#f6ad55"></div> Medium — Moderate risk identified</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#faf089; border:1px solid #e2e8f0"></div> Low — Minor risk identified</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#c6f6d5"></div> None — No risk identified</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#d53f8c"></div> Pulsing pink — Inconsistency detected (same subject, different risk scores across runs)</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#c53030"></div> YES badge — Subject has at least one risk category with differing scores</div>
+                <div class="legend-item"><span style="font-weight:600; color:#4a5568;">*</span>&nbsp; Asterisk — This specific category has inconsistent scores across reports</div>
+            </div>
+        </div>
 
         <h3 class="section-title">Detailed Report Breakdown</h3>
         
@@ -723,7 +760,7 @@
             <div class="legend-item"><div class="legend-swatch" style="background:#d53f8c"></div> Inconsistency (pulsing)</div>
         </div>
 
-        <p class="refresh-note">This page auto-refreshes every 30 seconds. Last data check: 2026-03-17 14:19:34 UTC</p>
+        <p class="refresh-note">This page auto-refreshes every 30 seconds. Last data check: 2026-03-17 14:53:35 UTC</p>
     </div>
 </body>
 </html>
